@@ -1,0 +1,48 @@
+{
+  "name": "@tamagui/use-store",
+  "version": "1.123.2",
+  "types": "./src",
+  "main": "dist/cjs",
+  "module": "dist/esm",
+  "files": [
+    "src",
+    "types",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tamagui-build --skip-types",
+    "watch": "tamagui-build --skip-types --watch",
+    "lint": "biome check src",
+    "lint:fix": "biome check --write src",
+    "clean": "tamagui-build clean",
+    "clean:build": "tamagui-build clean:build"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "react-native": {
+        "import": "./dist/esm/index.native.js",
+        "require": "./dist/cjs/index.native.js"
+      },
+      "types": "./src/index.ts",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/cjs/index.cjs",
+      "default": "./dist/cjs/index.native.js"
+    }
+  },
+  "dependencies": {
+    "@tamagui/simple-hash": "1.123.2"
+  },
+  "devDependencies": {
+    "@tamagui/build": "1.123.2",
+    "@testing-library/react": "^16.1.0",
+    "react": "*",
+    "vitest": "^3.0.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "react": "*"
+  }
+}

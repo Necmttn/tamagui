@@ -1,0 +1,31 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true
+  },
+  "references": [
+    {
+      "path": "../../core/constants"
+    },
+    {
+      "path": "../../core/core"
+    },
+    {
+      "path": "../../core/start-transition"
+    },
+    {
+      "path": "../../core/use-did-finish-ssr"
+    },
+    {
+      "path": "../../core/use-event"
+    },
+    {
+      "path": "../stacks"
+    }
+  ],
+  "exclude": [
+    "types",
+    "dist",
+    "**/__tests__"
+  ]
+}

@@ -1,0 +1,784 @@
+---
+title: Configuration
+description: Set up media queries, tokens, themes, and more.
+---
+
+You can set up as much or little of `@tamagui/core` as you like, and just use it out of the box:
+
+```tsx
+import { View, Text, styled } from '@tamagui/core'
+
+export default () => (
+  <View width={200} height={200} backgroundColor="rgba(0,0,0,0.2)">
+    <Text color="#f2f2f2" fontSize={24}>
+      Tamagui can optimize this to div + span or View + Text on React Native.
+    </Text>
+  </View>
+)
+```
+
+Create a `tamagui.config.ts` near the root of your app, and only import it to pass it to your [TamaguiProvider](#tamaguiprovider) near the root of your app. This prevents circular import issues. You can get your config from anywhere with `getConfig`. Here's a simple example of a configuration:
+
+A very simple `@tamagui/core` could look like this:
+
+```tsx fileName=tamagui.config.ts
+import { createTamagui, getConfig } from '@tamagui/core'
+
+export const config = createTamagui({
+  // act like CSS variables at your root
+  tokens: {
+    // width="$sm"
+    size: { sm: 8, md: 12, lg: 20 },
+    // margin="$-sm"
+    space: { '-sm': 8 },
+    // radius="$none"
+    radius: { none: 0, sm: 3 },
+    color: { white: '#fff', black: '#000' },
+  },
+
+  themes: {
+    light: {
+      bg: '#f2f2f2',
+      color: '#fff',
+    },
+    dark: {
+      bg: '#111',
+      color: '#000',
+    },
+  },
+
+  // media query definitions can be used to style,
+  // but also can be used with "groups" to do container queries by size:
+  media: {
+    sm: { maxWidth: 860 },
+    gtSm: { minWidth: 860 + 1 },
+    short: { maxHeight: 820 },
+    hoverNone: { hover: 'none' },
+    pointerCoarse: { pointer: 'coarse' },
+  },
+
+  shorthands: {
+    // <View px={20} />
+    px: 'paddingHorizontal',
+  },
+
+  settings: {
+    disableSSR: true, // for client-side apps gains a bit of performance
+    allowedStyleValues: 'somewhat-strict-web', // if targeting only web
+  },
+})
+
+// in other files use this:
+console.log(`config is`, getConfig())
+
+// get typescript types on @tamagui/core imports:
+type AppConfig = typeof config
+declare module '@tamagui/core' {
+  interface TamaguiCustomConfig extends AppConfig {}
+}
+```
+
+<Notice theme="green">
+  In this guide we import everything from `@tamagui/core`, but if you end up using the `tamagui` UI kit, you can just
+  import everything from there instead.
+</Notice>
+
+### Quick Start
+
+We find most people are best off importing at least some of the default configuration we provide.
+If you use it out of the box, you get a nice set of defaults, and some mostly tailwind-aligned shorthands and media queries. It also comes with and easy way to generate themes with `createThemes`:
+
+```bash
+npm install @tamagui/config
+```
+
+```tsx fileName="tamagui.config.ts"
+import { defaultConfig } from '@tamagui/config/v4'
+import { createTamagui } from '@tamagui/core'
+
+export const config = createTamagui(defaultConfig)
+
+type CustomConfig = typeof config
+
+// ensure types work
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends CustomConfig {}
+}
+```
+
+For more, see [the next page on **@tamagui/config**](/docs/core/config-v4).
+
+## From scratch
+
+Let's start with an example of a complete `tamagui.config.ts`. Note that keys
+used here can be customized to your liking.
+
+Here's a small but complete example:
+
+```tsx fileName="tamagui.config.ts"
+import { createFont, createTamagui, createTokens, isWeb } from 'tamagui'
+
+// To work with the tamagui UI kit styled components (which is optional)
+// you'd want the keys used for `size`, `lineHeight`, `weight` and
+// `letterSpacing` to be consistent. The `createFont` function
+// will fill-in any missing values if `lineHeight`, `weight` or
+// `letterSpacing` are subsets of `size`.
+
+const systemFont = createFont({
+  family: isWeb ? 'Helvetica, Arial, sans-serif' : 'System',
+  size: {
+    1: 12,
+    2: 14,
+    3: 15,
+  },
+  lineHeight: {
+    // 1 will be 22
+    2: 22,
+  },
+  weight: {
+    1: '300',
+    // 2 will be 300
+    3: '600',
+  },
+  letterSpacing: {
+    1: 0,
+    2: -1,
+    // 3 will be -1
+  },
+  // (native only) swaps out fonts by face/style
+  face: {
+    300: { normal: 'InterLight', italic: 'InterItalic' },
+    600: { normal: 'InterBold' },
+  },
+})
+
+// Set up tokens
+
+// The keys can be whatever you want, but if using `tamagui` you'll want 1-10:
+
+const size = {
+  0: 0,
+  1: 5,
+  2: 10,
+  // ....
+}
+
+export const tokens = createTokens({
+  size,
+  space: { ...size, '-1': -5, '-2': -10 },
+  radius: { 0: 0, 1: 3 },
+  zIndex: { 0: 0, 1: 100, 2: 200 },
+  color: {
+    white: '#fff',
+    black: '#000',
+  },
+})
+
+const config = createTamagui({
+  fonts: {
+    heading: systemFont,
+    body: systemFont,
+  },
+  tokens,
+
+  themes: {
+    light: {
+      bg: '#f2f2f2',
+      color: tokens.color.black,
+    },
+    dark: {
+      bg: '#111',
+      color: tokens.color.white,
+    },
+  },
+
+  media: {
+    sm: { maxWidth: 860 },
+    gtSm: { minWidth: 860 + 1 },
+    short: { maxHeight: 820 },
+    hoverNone: { hover: 'none' },
+    pointerCoarse: { pointer: 'coarse' },
+  },
+
+  // Shorthands
+  // Adds <View m={10} /> to <View margin={10} />
+  // See Settings section on this page to only allow shorthands
+  // Be sure to have `as const` at the end
+  shorthands: {
+    px: 'paddingHorizontal',
+    f: 'flex',
+    m: 'margin',
+    w: 'width',
+  } as const,
+
+  // Change the default props for any styled() component with a name.
+  // We are discouraging the use of this and have deprecated it, prefer to use
+  // styled() on any component to change it's styles.
+  defaultProps: {
+    Text: {
+      color: 'green',
+    },
+  },
+})
+
+type AppConfig = typeof config
+
+// this will give you types for your components
+// note - if using your own design system, put the package name here instead of tamagui
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends AppConfig {}
+
+  // if you want types for group styling props, define them like so:
+  interface TypeOverride {
+    groupNames(): 'card'
+  }
+}
+
+export default config
+```
+
+The `createTamagui` function receives a configuration object:
+
+- `tokens`: Use `createTokens` to generate variables in your theme and app.
+- `theme`: Define your design [theme](/docs/intro/themes), which map to CSS
+  properties.
+- `media`: Define reusable responsive [media queries](/docs/core/use-media).
+- `shorthands`: Define any props you want to expand to style values, keys being
+  the shorthand and values being the expanded style prop.
+- `defaultProps`: Deprecated, use styled() on any component to change it's
+  styles. ~~For more advanced uses, you can override all named `styled()`
+  components initial values.~~
+- `onlyAllowShorthands`: When set to true will ensure that if you define
+  shorthands, they override existing long-form style props.
+
+<Notice>
+  On Android you need to set the `face` option in `createFont` or else fonts
+  won't pick up different weights, due to a React Native restriction.
+</Notice>
+
+Note, for `tamagui` (not core), it expects you to define a `true` token that
+maps to your default size, this way it knows what token to use by default. So
+you'd do something like this:
+
+```tsx
+export const tokens = createTokens({
+  size: {
+    small: 20,
+    medium: 30,
+    true: 30, // note true = 30 just like medium, your default size token
+    large: 40,
+  },
+  space: {
+    small: 10,
+    medium: 20,
+    true: 20, // same goes for space and other token categories
+    large: 30,
+  },
+})
+```
+
+<Notice theme="green">
+  If using the compiler, your tamagui.config.ts is parsed at build-time. For this
+  reason, we recommend keeping it relatively simple. Avoid importing heavy
+  dependencies.
+</Notice>
+
+## TamaguiProvider
+
+With your config set up, import it near the root of your app and pass it to `TamaguiProvider`:
+
+```tsx line=3-5 fileName="App.tsx"
+import { TamaguiProvider } from 'tamagui'
+import { config } from './tamagui.config'
+
+export default function App() {
+  return (
+    <TamaguiProvider config={config} defaultTheme="light">
+      <AppContents />
+    </TamaguiProvider>
+  )
+}
+```
+
+`TamaguiProvider` accepts a few properties:
+
+<PropsTable
+  data={[
+    {
+      name: 'defaultTheme',
+      required: true,
+      type: 'string',
+      description: `The initial top level theme.`,
+    },
+    {
+      name: 'disableRootThemeClass',
+      required: false,
+      type: 'boolean',
+      description:
+        'Disable inserting a theme class in the DOM or context, allowing you to manually place it higher. For custom use cases like integration with next-theme.',
+    },
+    {
+      name: 'disableInjectCSS',
+      required: false,
+      type: 'boolean',
+      description: `By default Tamagui inserts CSS with a useInsertionEffect on load. But if you're setting up SSR you'll want to use getCSS() on the server instead and then turn on this setting.`,
+    },
+  ]}
+/>
+
+By default, Tamagui injects the CSS for your configuration on the client-side into `document.head`, but you
+probably will want something better for production. To do this, pass true to `disableInjectCSS` on `TamaguProvider`, and then do one of the following three options:
+
+If your framework has server-side layouts, you can just render it inline:
+
+```tsx fileName=app/_layout.tsx
+import { config } from './tamagui.config'
+
+export default () => (
+  <html>
+    <head>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: config.getCSS(),
+        }}
+      />
+    </head>
+    <body>
+      <Slot />
+    </body>
+  </html>
+)
+```
+
+To optimize a bit more so you share a single CSS file between all pages, you can use one of our bundler plugins' `outputCSS` setting, like so:
+
+```tsx fileName=vite.config.ts
+import { tamaguiPlugin } from '@tamagui/vite-plugin'
+
+export default {
+  plugins: [
+    tamaguiPlugin({
+      config: './src/tamagui.config.ts',
+      outputCSS: './src/tamagui.css'
+    }),
+  ]
+}
+```
+
+And then you'll want to import the resulting `tamagui.css` into your app.
+
+As final option, you can also generate it yourself with the CLI. First create a `tamagui.build.ts`:
+
+```tsx fileName=tamagui.build.ts
+import type { TamaguiBuildOptions } from 'tamagui'
+
+export default {
+  components: ['tamagui'],
+  config: './config/tamagui.config.ts',
+  outputCSS: './tamagui.css',
+} satisfies TamaguiBuildOptions
+```
+
+And then run:
+
+```bash
+npx @tamagui/cli generate
+```
+
+## Tokens
+
+Tokens are inspired by the [Theme UI spec](https://theme-ui.com/theme-spec/). They are mapped to CSS
+variables at build time. You can read about them in more depth on [the tokens page](/docs/core/tokens).
+
+### Font tokens
+
+The font tokens are a bit special and are created with `createFont`:
+
+```tsx
+const interFont = createFont({
+  family: 'Inter, Helvetica, Arial, sans-serif',
+  size: {
+    1: 12,
+    2: 14,
+    3: 15,
+    // ...
+  },
+  lineHeight: {
+    1: 17,
+    2: 22,
+    3: 25,
+    // ...
+  },
+  weight: {
+    4: '300',
+    6: '600',
+  },
+  letterSpacing: {
+    4: 0,
+    8: -1,
+  },
+
+  // for native only, alternate family based on weight/style
+  face: {
+    // pass in weights as keys
+    700: { normal: 'InterBold', italic: 'InterBold-Italic' },
+    800: { normal: 'InterBold', italic: 'InterBold-Italic' },
+    900: { normal: 'InterBold', italic: 'InterBold-Italic' },
+  },
+})
+```
+
+<Notice>
+  We use numbered keys as an example, but you can use any strings you'd like.
+  The optional default styles in `tamagui` make use of number keys 1-10.
+</Notice>
+
+This gives you a lot of power over customizing every aspect of your design based
+on each font family. In other styling libraries that follow the Theme UI spec,
+you generally don't group your size/lineHeight/weight/etc tokens by the family,
+which means you are forced to choose a single vertical rhythm no matter the
+font.
+
+#### Custom Fonts on Native
+
+If you are using a custom font for native, you need to load your fonts for React Native to recognize them. Tamagui doesn't really touch this area, instead you'll use Expo or [React Native directly](https://stackoverflow.com/questions/35255645/how-to-set-default-font-family-in-react-native), something like this:
+
+```tsx fileName="App.tsx"
+import { useFonts } from 'expo-font'
+
+function App() {
+  const [loaded] = useFonts({
+    Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
+    InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
+  })
+
+  useEffect(() => {
+    if (loaded) {
+      // can hide splash screen here
+    }
+  }, [loaded])
+
+  if (!loaded) {
+    return null
+  }
+
+  return <MyApp />
+}
+```
+
+### Non-font tokens
+
+The rest of the tokens categories besides font are flatter. The `space` and
+`size` generally share keys, and that space can generally use negative keys as
+well.
+
+```tsx
+// passed into createTamagui
+const tokens = createTokens({
+  color: {
+    white: '#fff',
+    black: '#000',
+  },
+})
+```
+
+You access tokens then by using `$` prefixes in your values. Tamagui knows which
+tokens to use based on the style property you use.
+
+```tsx
+const App = () => (
+  <Text fontSize="$lg" lineHeight="$lg" fontFamily="$mono" color="$white">
+    Hello world
+  </Text>
+)
+```
+
+One final note: using tokens with themes. Tokens are considered a "fallback" to
+themes, so any values you define in your theme will override the token. The next
+section will explain this further.
+
+### Configuring tokens
+
+There are a few settings that control how strict your style values are allowed
+to be, which are handled by the `settings` option of `createTamagui`. See the
+[settings](#settings) below.
+
+### Themes
+
+Themes live one level below tokens. Tokens are your variables, where themes use
+those tokens to create consistent, generic properties that you then typically
+use in shareable components. Themes should generally only deal with colors.
+
+Tamagui components in general expect a set of theme keys to be defined like the
+following, but you can deviate if you create your own design system.
+
+```tsx
+const light = {
+  background: '#fff',
+  backgroundHover: tokens.color.gray2,
+  backgroundPress: tokens.color.gray4,
+  backgroundFocus: tokens.color.gray5,
+  borderColor: tokens.color.gray4,
+  borderColorHover: tokens.color.gray6,
+  borderColorPress: tokens.color.gray12,
+  borderColorFocus: tokens.color.gray11,
+  color: tokens.color.gray10,
+  colorHover: tokens.color.gray9,
+  colorPress: tokens.color.gray8,
+  colorFocus: tokens.color.gray8,
+  shadowColor: tokens.color.grayA4,
+  shadowColorHover: tokens.color.grayA6,
+  shadowColorPress: tokens.color.grayA8,
+  shadowColorFocus: tokens.color.grayA8,
+  ...lightColors,
+}
+```
+
+You don't have to use tokens as your theme values, but if you do they avoid some
+overhead. With Tamagui, the idea is that `bg`, `color`, and `borderColor`
+represent the "primary" and clearest colors, and `bg2`, `color2` etc get more
+subtle.
+
+To see how it works, here's a snippet from `InteractiveFrame` which is the frame
+component that's used in `Button`:
+
+```tsx
+export const InteractiveFrame = styled(XStack, {
+  borderRadius: '$1',
+  paddingVertical: '$2',
+  paddingHorizontal: '$3',
+  backgroundColor: '$background',
+  justifyContent: 'center',
+  alignItems: 'center',
+  cursor: 'pointer',
+  flexWrap: 'nowrap',
+  flexDirection: 'row',
+  flexShrink: 1,
+
+  hoverStyle: {
+    backgroundColor: '$backgroundHover',
+  },
+
+  pressStyle: {
+    backgroundColor: '$backgroundPress',
+  },
+
+  // ...
+})
+```
+
+### Media
+
+For more full docs on media queries, see the
+[useMedia docs page](/docs/core/use-media).
+
+### Animations
+
+Choose one of `@tamagui/animations-css` for CSS transition based animations,
+`@tamagui/animations-react-native` for React Native Animated based animations,
+or `@tamagui/animations-moti` for [Moti](https://moti.fyi) animations. You can
+swap them out per-platform as well, so long as you match the keys of the
+animations you pass in for each driver.
+
+Add `animations` to `createTamagui`:
+
+```tsx
+import { createAnimations } from '@tamagui/animations-react-native'
+
+// pass this exported `animations` to your `createTamagui` call:
+export const animations = createAnimations({
+    bouncy: {
+      damping: 9,
+      mass: 0.9,
+      stiffness: 150,
+    },
+    lazy: {
+      damping: 18,
+      stiffness: 50,
+    },
+  }),
+})
+```
+
+If using `@tamagui/animations-moti`, be sure to add `moti` as a dependency as
+well.
+
+### Shorthands
+
+Shorthands are defined on `createTamagui`. Here's an example of a partial
+shorthands configuration:
+
+```tsx
+// the as const ensures types work with the optional `onlyAllowShorthands` option
+const shorthands = {
+  ac: 'alignContent',
+  ai: 'alignItems',
+  als: 'alignSelf',
+  bblr: 'borderBottomLeftRadius',
+  bbrr: 'borderBottomRightRadius',
+  bg: 'backgroundColor',
+  br: 'borderRadius',
+  btlr: 'borderTopLeftRadius',
+  btrr: 'borderTopRightRadius',
+  f: 'flex',
+  // ...
+} as const
+
+export default createTamagui({
+  shorthands,
+})
+```
+
+Which will enable usage like:
+
+```tsx
+<View br="$myToken" />
+```
+
+where `br` expands into `borderRadius`.
+
+### Settings
+
+You can pass a `settings` object to `createTamagui`:
+
+<PropsTable
+  data={[
+    {
+      name: `disableSSR`,
+      type: `boolean`,
+      description: `For SSR compatibility on the web, Tamagui will render once with the settings from mediaQueryDefaultActive set for all media queries. Then, it will render again after the initial render using the proper media query values. This is so that the hydrating components will match the server. Setting disableSSR to true will avoid this and instead immediately render using the up to date media state, which is the preferrable behavior for client-side only (SPA) style apps.`,
+    },
+    {
+      name: `defaultFont`,
+      required: false,
+      type: `string`,
+      description: `Map it to the regular key of the font given to createTamagui, so "body" or "heading" make sense as values here. This will ensure this font is the fallback for any views that don't define it.`,
+    },
+    {
+      name: 'mediaQueryDefaultActive',
+      required: false,
+      type: 'Record<string, boolean>',
+      description: `For the first render, determines which media queries are true (useful for SSR).`,
+    },
+    {
+      name: 'cssStyleSeparator',
+      required: false,
+      type: 'string',
+      description: `What's between each generated CSS style rule. Set as newline to more easily debug outputted CSS.`,
+    },
+    {
+      name: 'themeClassNameOnRoot',
+      required: false,
+      type: 'boolean',
+      default: false,
+      description: `When using next-themes or anything that does SSR and attaches the theme class to the HTML tag, set this to true to have the proper CSS theme selectors generate`,
+    },
+    {
+      name: 'selectionStyles',
+      required: false,
+      type: '(theme) => ({ backgroundColor: Variable | string; color: Variable | string })',
+      default: false,
+      description: `On the web, will generate ::selection styles for text selection.`,
+    },
+    {
+      name: 'shouldAddPrefersColorThemes',
+      required: false,
+      type: 'boolean',
+      default: `true`,
+      description: `Generates @media queries based on prefers-color-scheme for you if you have light/dark themes.`,
+    },
+    {
+      name: 'maxDarkLightNesting',
+      required: false,
+      type: 'number',
+      default: 3,
+      description: `(Advanced) On the web, tamagui treats "dark" and "light" themes as special and generates extra CSS to avoid having to re-render the entire page. This CSS relies on specificity hacks that multiply by your sub-themes. This prop sets the maximum number of nested dark/light themes you can do. Defaults to 3 for a balance, but can be higher if you nest them deeply.`,
+    },
+    {
+      name: 'onlyAllowShorthands',
+      required: false,
+      type: 'boolean',
+      default: false,
+      description: `Will remove the type for the long-form versions of any shorthands you define.`,
+    },
+    {
+      name: `allowedStyleValues`,
+      required: false,
+      type: 'AllowedStyleValuesSetting',
+      description: `Set up allowed values on style props, this is only a type-level validation (see below).`,
+    },
+    {
+      name: `autocompleteSpecificTokens`,
+      required: false,
+      type: `boolean | 'except-special'`,
+      description: `Set up if "specific tokens" ($color.name) are added to the types where tokens are allowed (see below).`,
+    },
+    {
+      name: 'mediaPropOrder',
+      required: false,
+      type: 'boolean',
+      default: false,
+      description: `(beta) Will change the behavior of media styles. By default they have a fixed specificity: they always override any $theme- or $platform- styles. With this enabled, media styles will have the same precedence as the theme and platform styles, meaning that the order of the props determines if they override.`,
+    },
+    {
+      name: 'fastSchemeChange',
+      required: false,
+      type: 'boolean',
+      default: false,
+      description: `On iOS, this enables a mode where Tamagui returns color values using DynamicColorIOS significantly speeding up dark/light re-renders. Note: When enabled you must make sure the defaultTheme you set on TamaguiProvider matches the current system color scheme.`,
+    },
+    {
+      name: 'webContainerType',
+      required: false,
+      type: 'string',
+      default: 'inline-size',
+      description: `Only for web, when using group styles Tamagui uses container queries. When using a group on a containing element, Tamagui defaults to setting "container-type" in CSS to "inline-size".`,
+    },
+  ]}
+/>
+
+#### Type strictness
+
+#### `allowedStyleValues`
+
+- `false (default)`: allows any string (or number for styles that accept
+  numbers)
+- `strict`: only allows tokens for any token-enabled properties
+- `strict-web`: same as strict but allows for web-specific tokens like
+  auto/inherit
+- `somewhat-strict`: allow tokens or:
+  - for `space/size`: string% or numbers
+  - for `radius`: number
+  - for `zIndex`: number
+  - for `color`: named colors or rgba/hsla strings
+- `somewhat-strict-web`: same as somewhat-strict but allows for web-specific
+  tokens
+
+```tsx
+type AllowedValueSetting =
+  | boolean
+  | 'strict'
+  | 'somewhat-strict'
+  | 'strict-web'
+  | 'somewhat-strict-web'
+
+type AllowedStyleValuesSetting =
+  | AllowedValueSetting
+  | {
+      space?: AllowedValueSetting
+      size?: AllowedValueSetting
+      radius?: AllowedValueSetting
+      zIndex?: AllowedValueSetting
+      color?: AllowedValueSetting
+    }
+```
+
+#### `autocompleteSpecificTokens`
+
+The VSCode autocomplete puts specific tokens above the regular ones, which leads
+to worse DX. If true this setting removes the specific token from types for the
+defined categories.
+
+If set to `except-special`, specific tokens will autocomplete only if they don't
+normally use one of the special token groups: space, size, radius, zIndex,
+color.

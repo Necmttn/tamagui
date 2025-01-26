@@ -1,0 +1,108 @@
+---
+title: Installation
+description: Get Tamagui set up, step by step
+---
+
+<IntroParagraph>
+We recommend using `npm create tamagui@latest` to bootstrap one of our starter templates, with examples for many frameworks.
+</IntroParagraph>
+
+The base Tamagui style library, `@tamagui/core` has no dependencies outside of `react`, is smaller than React Native Web. It implements the full React Native View and Text APIs independently, and then adds a large superset of style APIs to support a larger amount of modern CSS styling.
+
+To install:
+
+```bash
+yarn add @tamagui/core
+```
+
+If you plan to use the full UI kit, `tamagui`, you can avoid installing `@tamagui/core` altogether and instead:
+
+```bash
+yarn add tamagui
+```
+
+The `tamagui` package is a superset of core, so anywhere in the docs `@tamagui/core` is used, you can replace it with `tamagui`.
+
+Add the optional `TamaguiProvider` to customize your design system and settings:
+
+```tsx fileName="App.tsx"
+import { TamaguiProvider, View } from '@tamagui/core'
+import config from './tamagui.config' // your configuration
+
+export default function App() {
+  return (
+  <TamaguiProvider config={config}>
+    <View width={200} height={200} backgroundColor="$background" />
+  </TamaguiProvider>
+  )
+}
+```
+
+See the [configuration documentation](/docs/core/configuration) docs for a comprehensive overview of what can be in your config. 
+
+If you'd like to get started more quickly with presets, we have `@tamagui/config`:
+
+```bash
+yarn add @tamagui/core @tamagui/config
+```
+
+And then provide it near your root:
+
+```tsx fileName="App.tsx"
+import { TamaguiProvider, createTamagui } from '@tamagui/core'
+import { defaultConfig } from '@tamagui/config/v4'
+
+// you usually export this from a tamagui.config.ts file
+const config = createTamagui(defaultConfig)
+
+type Conf = typeof config
+
+// make imports typed
+declare module '@tamagui/core' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+
+export default () => {
+  return (
+    <TamaguiProvider config={config}>
+      {/* your app here */}
+    </TamaguiProvider>
+  )
+}
+```
+
+You are ready to go.
+
+<Preview>
+  <DemoButton />
+</Preview>
+
+```tsx class=preview line=5
+import { Button } from 'tamagui'
+
+export default function Demo() {
+  return <Button theme="blue">Hello world</Button>
+}
+```
+
+From here, we'd recommend [spending some time understanding configuration](/docs/core/configuration). Tamagui works across 100% of it's features at runtime and compile-time. This means you can wait until you absolutely need more performance to [set up the compiler](/docs/intro/compiler-install).
+
+---
+
+## Guides
+
+Tamagui generally doesn't require any special bundler setup as we've worked hard to make it "just work" without configuration in a wide variety of environments.
+
+That said, the broader React Native and React Native Web ecosystem is filled with packages that do need configuration. Tamagui provides a variety of bundler plugins that help improve that compatibility, as well as letting you opt into the optimizing compiler.
+
+For more in-depth guides:
+
+<Spacer/>
+
+<Grid gap="$4">
+  <LogoCard title="Webpack" img="/logos/webpack.svg" link="/docs/guides/webpack" subtitle="Powerful module bundler for modern JavaScript applications." colorOffset={0} />
+  <LogoCard title="Metro" img="/logos/metro.svg" link="/docs/guides/metro" subtitle="Fast, scalable, and serverless JavaScript bundler for react Native." colorOffset={3} />
+  <LogoCard title="Vite" img="/logos/vite.svg" link="/docs/guides/vite" subtitle="Fast and modern development server and build tool." colorOffset={1} />
+  <LogoCard title="Expo" img="/logos/expo.svg" link="/docs/guides/expo" subtitle="Platform for creating universal native apps with JavaScript and React." colorOffset={6} />
+  <LogoCard fg={0} w="49%" $xs={{fg:0, w:"100%"}} title="Next.js" img="/logos/next-js.svg" link="/docs/guides/next-js" subtitle="Full-featured React framework with great developer experience." colorOffset={2}  />
+</Grid>

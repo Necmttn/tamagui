@@ -7,8 +7,10 @@
     "noEmit": true
   },
   "references": [
-    { "path": "apps/kitchen-sink" },
-    { "path": "apps/studio" },
-    { "path": "apps/site" },
+    { "path": "code/kitchen-sink" },
+    { "path": "code/bento" },
+    { "path": "code/demos" },
+    // this is giving errors because some conflict with bentos tamagui.config
+    // { "path": "code/tamagui.dev" },
   ]
 }

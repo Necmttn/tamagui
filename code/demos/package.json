@@ -1,0 +1,76 @@
+{
+  "name": "@tamagui/demos",
+  "version": "1.123.2",
+  "sideEffects": [
+    "*.css"
+  ],
+  "source": "demos/src/index.tsx",
+  "types": "./src",
+  "main": "dist/cjs",
+  "module": "dist/esm",
+  "files": [
+    "src",
+    "types",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tamagui-build --skip-types",
+    "watch": "tamagui-build --skip-types --watch",
+    "lint": "biome check src",
+    "lint:fix": "biome check --write src",
+    "clean": "tamagui-build clean",
+    "clean:build": "tamagui-build clean:build"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    "./photo/*": "./public/*.jpg",
+    ".": {
+      "react-native": {
+        "import": "./dist/esm/index.native.js",
+        "require": "./dist/cjs/index.native.js"
+      },
+      "types": "./src/index.tsx",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/cjs/index.cjs",
+      "default": "./dist/cjs/index.native.js"
+    },
+    "./demo/*": {
+      "react-native": {
+        "import": "./dist/esm/*.native.js",
+        "require": "./dist/cjs/*.native.js"
+      },
+      "types": "./types/*.d.ts",
+      "import": "./dist/esm/*.mjs",
+      "require": "./dist/cjs/*.cjs"
+    }
+  },
+  "dependencies": {
+    "@tamagui/avatar": "1.123.2",
+    "@tamagui/button": "1.123.2",
+    "@tamagui/config": "1.123.2",
+    "@tamagui/core": "1.123.2",
+    "@tamagui/list-item": "1.123.2",
+    "@tamagui/logo": "1.123.2",
+    "@tamagui/lucide-icons": "1.123.2",
+    "@tamagui/menu": "1.123.2",
+    "@tamagui/popover": "1.123.2",
+    "@tamagui/progress": "1.123.2",
+    "@tamagui/radio-group": "1.123.2",
+    "@tamagui/select": "1.123.2",
+    "@tamagui/sheet": "1.123.2",
+    "@tamagui/slider": "1.123.2",
+    "@tamagui/stacks": "1.123.2",
+    "@tamagui/toast": "1.123.2",
+    "tamagui": "1.123.2"
+  },
+  "peerDependencies": {
+    "react": "*"
+  },
+  "devDependencies": {
+    "@tamagui/build": "1.123.2",
+    "react": "*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
